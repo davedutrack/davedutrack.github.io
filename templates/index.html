@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EduTrack Academic • School Academic Portal</title><link rel="stylesheet" href="/static/style.css"><script src="https://cdn.jsdelivr.net/npm/chart.js"></script></head>
+<body>
+<div id="setupScreen" class="auth-screen hidden"><div class="auth-art"><div class="logo">✦</div><h1>EduTrack Academic</h1><p>Build the school intelligence workspace from one secure control centre.</p></div><div class="auth-box"><div class="eyebrow">FIRST-TIME SETUP</div><h2>Create principal account</h2><p>This account controls teacher creation and school settings.</p><form id="setupForm"><label>Principal name<input name="name" required placeholder="Principal name"></label><label>Username<input name="username" required value="principal" pattern="[a-z0-9._-]+"></label><label>Password<div class="password-wrap"><input id="setupPassword" name="password" type="password" minlength="8" required placeholder="At least 8 characters"><button type="button" class="peek" data-target="setupPassword">◉</button></div></label><label>Confirm password<div class="password-wrap"><input id="setupConfirm" name="confirm_password" type="password" minlength="8" required placeholder="Re-enter password"><button type="button" class="peek" data-target="setupConfirm">◉</button></div></label><button class="btn primary full">Create principal account</button></form><div class="error" id="setupError"></div></div></div>
+<div id="loginScreen" class="auth-screen hidden"><div class="auth-art"><div class="logo">✦</div><h1>EduTrack Academic</h1><p>One intelligent workspace for students, teachers and school leadership.</p><div class="art-cards"><span>Academic Analytics</span><span>Attendance</span><span>Exam Results</span></div></div><div class="auth-box"><div class="eyebrow">SCHOOL ACADEMIC PORTAL</div><h2 id="loginTitle">Welcome back.</h2><p id="loginSubtitle">Choose your portal to continue.</p><div class="role-switch" role="tablist"><button type="button" class="role-tab active" data-role="principal">Principal</button><button type="button" class="role-tab" data-role="teacher">Teacher</button><button type="button" class="role-tab" data-role="student">Student</button></div><form id="loginForm"><label id="loginUserLabel">Principal User ID<input id="loginUser" required placeholder="principal"></label><label>Password<div class="password-wrap"><input id="loginPass" type="password" required placeholder="Your password"><button type="button" class="peek" data-target="loginPass">◉</button></div></label><button class="btn primary full">Sign in →</button></form><div class="error" id="loginError"></div><small class="hint" id="loginHint">Only the principal can create teacher accounts.</small></div></div>
+
+<div id="app" class="hidden">
+<header class="topnav"><div class="topbrand"><div class="logo mini">✦</div><div><b>EduTrack Academic</b><small>ACADEMIC INTELLIGENCE</small></div></div>
+<nav><button data-page="dashboard">Dashboard</button><button data-page="students">Students</button><button data-page="results">Results</button><button data-page="attendance">Attendance</button><button data-page="analytics">Analytics</button><button data-page="reports">Reports & Print</button><button data-page="resources">Academic Hub</button><button data-page="settings" class="principal-only">Administration</button></nav>
+<div class="topright"><button id="backBtn" class="icon-btn" title="Back">←</button><button id="themeToggle" class="icon-btn" title="Toggle dark mode">☾</button><span id="rolePill"></span><button id="userMenu">● <span id="userName"></span>⌄</button><div id="userDropdown" class="dropdown"><button id="changePassword">Change password</button><button id="logout">Sign out</button></div></div></header>
+
+<main>
+<section id="dashboard" class="page">
+<div class="heading-row"><div><div class="eyebrow">SCHOOL OVERVIEW</div><h1>Good to see you, <span id="helloName"></span>.</h1><p>Monitor the school from one place.</p></div><div class="class-select"><label>VIEWING CLASS</label><select id="dashboardClass"></select></div></div>
+<div class="hero"><div><span class="tag">LIVE ACADEMIC INTELLIGENCE</span><h2>Every student.<br><em>Every possibility.</em></h2><p>Choose a class above to focus the dashboard. Your last choice is remembered on this device.</p></div><div class="hero-mark">✳</div></div>
+<div class="kpis"><div><small>STUDENTS</small><strong id="dStudents">—</strong><span>in selected class</span></div><div><small>AVERAGE RESULT</small><strong id="dAverage">—</strong><span>all entered marks</span></div><div><small>ATTENDANCE</small><strong id="dAttendance">—</strong><span>calculated from days</span></div><div><small>EXAMS TRACKED</small><strong id="dExams">—</strong><span>available assessments</span></div></div>
+<div class="grid2"><div class="card"><div class="card-head"><div><div class="eyebrow">SUBJECT PERFORMANCE</div><h3>Class average by subject</h3></div></div><div class="chart"><canvas id="subjectChart"></canvas></div></div><div class="card"><div class="card-head"><div><div class="eyebrow">EXAM TREND</div><h3>Average across examinations</h3></div></div><div class="chart"><canvas id="examChart"></canvas></div></div></div>
+</section>
+
+<section id="students" class="page hidden">
+<div class="heading-row"><div><div class="eyebrow">STUDENT DIRECTORY</div><h1>Students</h1><p>Manage classes, sections, admission numbers and profiles.</p></div><div class="actions teacher-only"><button class="btn secondary" id="importBtn">⇧ Import Excel</button><button class="btn primary" id="addStudentBtn">＋ Add student</button></div></div>
+<div class="toolbar"><input id="studentSearch" placeholder="⌕ Search name, admission no. or roll"><select id="studentClass"></select><select id="studentSection"></select></div>
+<div class="card table-card"><table><thead><tr><th>STUDENT</th><th>ADMISSION NO.</th><th>CLASS</th><th>ROLL</th><th>ATTENDANCE</th><th></th></tr></thead><tbody id="studentTable"></tbody></table></div>
+</section>
+
+<section id="results" class="page hidden">
+<div class="heading-row"><div><div class="eyebrow">EXAMINATION CENTRE</div><h1>Results</h1><p>Unit tests, half-yearly, annual and custom examinations.</p></div><button class="btn secondary teacher-only" id="addExamBtn">＋ Add examination</button></div>
+<div class="card result-panel"><div class="result-controls"><label>Student<select id="resultStudent"></select></label><label>Examination<select id="resultExam"></select></label></div>
+<div class="teacher-only mark-entry"><div class="eyebrow">ENTER / UPDATE MARK</div><div class="entry-grid"><label>Subject<select id="markSubject"></select></label><label>Marks<input id="markScore" type="number" min="0" value="80"></label><label>Out of<input id="markMax" type="number" min="1" value="100"></label><button class="btn primary" id="saveMark">Save mark</button></div></div>
+<div class="table-scroll"><table><thead><tr><th>SUBJECT</th><th>MARKS</th><th>MAX</th><th>PERCENTAGE</th></tr></thead><tbody id="marksTable"></tbody></table></div></div>
+</section>
+
+<section id="attendance" class="page hidden">
+<div class="heading-row"><div><div class="eyebrow">SMART DAILY ROLL CALL</div><h1>Attendance</h1><p>Take daily attendance in seconds, maintain monthly totals, and give students a complete attendance history.</p></div></div>
+<div class="student-attendance-panel hidden" id="studentAttendancePanel">
+  <div class="attendance-hero"><div><span class="tag">STUDENT ATTENDANCE</span><h2 id="studentAttPercent">—</h2><p>Your attendance percentage based on recorded daily attendance.</p></div><div class="att-ring" id="studentAttRing">—</div></div>
+  <div class="attendance-summary-grid"><div><small>PRESENT</small><b id="studentAttPresent">0</b></div><div><small>ABSENT</small><b id="studentAttAbsent">0</b></div><div><small>DAYS RECORDED</small><b id="studentAttTotal">0</b></div></div>
+  <div class="card table-card"><div class="card-head"><div><div class="eyebrow">ABSENCE LOG</div><h3>Dates of absence</h3></div></div><table><thead><tr><th>DATE</th><th>STATUS</th></tr></thead><tbody id="studentAbsenceTable"></tbody></table></div>
+</div>
+<div class="teacher-only" id="teacherAttendanceWorkspace">
+  <div class="attendance-tabs"><button class="attendance-tab active" data-att-tab="daily">Daily roll call</button><button class="attendance-tab" data-att-tab="monthly">Monthly summary</button></div>
+  <div id="dailyAttendanceTab" class="attendance-tab-panel">
+    <div class="card attendance-entry">
+      <div class="attendance-toolbar">
+        <label>Class<select id="dailyClass"></select></label><label>Section<select id="dailySection"></select></label><label>Date<input id="dailyDate" type="date"></label><button class="btn primary" id="loadDailyAttendance">Load students</button>
+      </div>
+      <div class="attendance-note"><b>Fast roll call:</b> every student starts as absent. Tap <b>Present</b> for students who are in class. You can also use <b>Mark all present</b>.</div>
+      <div class="daily-actions"><button class="btn secondary" id="markAllPresent">✓ Mark all present</button><span id="dailySummary">0 students</span><button class="btn primary" id="saveDailyAttendance">Save today's attendance</button></div>
+      <div id="dailyAttendanceList" class="daily-attendance-list"></div>
+    </div>
+  </div>
+  <div id="monthlyAttendanceTab" class="attendance-tab-panel hidden">
+    <div class="card attendance-entry">
+      <div class="attendance-toolbar">
+        <label>Class<select id="attClass"></select></label><label>Section<select id="attSection"></select></label><label>Year<input id="attYear" type="number"></label><label>Month<select id="attMonth"></select></label><label>Working days<input id="workingDays" type="number" min="1" placeholder="e.g. 22"></label><button class="btn primary" id="loadAttendanceClass">Load class</button>
+      </div>
+      <div class="attendance-note">Enter <b>working days once</b> for the selected class, section and month. Then fill each student's present days. The percentage is calculated automatically.</div>
+      <div id="bulkAttendanceList" class="bulk-attendance-list"></div>
+      <div class="bulk-actions"><span id="bulkAttendanceSummary">0 students loaded</span><button class="btn primary" id="saveBulkAttendance">Save monthly attendance</button></div>
+    </div>
+  </div>
+</div>
+<div class="card table-card"><div class="card-head"><div><div class="eyebrow">MONTHLY HISTORY</div><h3>Monthly attendance record</h3></div></div><table><thead><tr><th>MONTH</th><th>WORKING DAYS</th><th>PRESENT DAYS</th><th>ATTENDANCE</th></tr></thead><tbody id="attendanceTable"></tbody></table></div>
+</section>
+
+<section id="analytics" class="page hidden"><div class="heading-row"><div><div class="eyebrow">DATA INTELLIGENCE</div><h1>Analytics</h1><p>Use trends to understand academic performance.</p></div></div><div class="insight-grid"><div class="card"><div class="eyebrow">STRONGEST SUBJECT</div><h2 id="strongest">—</h2><p>Highest average percentage.</p></div><div class="card"><div class="eyebrow">FOCUS SUBJECT</div><h2 id="weakest">—</h2><p>Lowest average percentage — a signal for attention, not a prediction.</p></div><div class="card"><div class="eyebrow">CLASS-SECTION</div><h2 id="analyticsClass">—</h2><p>Current dashboard filter.</p></div></div><div class="card"><div class="card-head"><h3>Examination trend</h3></div><div class="chart tall"><canvas id="trendChart"></canvas></div></div></section>
+
+
+<section id="reports" class="page hidden">
+<div class="heading-row"><div><div class="eyebrow">DOCUMENT CENTRE</div><h1>Reports & Print</h1><p>Generate professional academic, attendance and result documents.</p></div></div>
+<div class="card">
+<div class="report-toolbar">
+<label class="teacher-principal-only">Student
+<select id="reportStudent"></select></label>
+<div id="studentReportName" class="report-student-name hidden"></div>
+</div>
+<div class="report-grid">
+<button class="report-card" data-report="student"><span>📋</span><b>Final Student Report</b><small>Complete academic + attendance profile</small></button>
+<button class="report-card" data-report="attendance"><span>📅</span><b>Attendance Report</b><small>Monthly and daily attendance</small></button>
+<button class="report-card" data-report="academic"><span>📊</span><b>Academic Performance</b><small>Examination and subject performance</small></button>
+<button class="report-card" data-report="marksheet"><span>🧾</span><b>Draft / Phase Marksheet</b><small>CBSE-inspired provisional format</small></button>
+</div>
+<div class="class-report-box teacher-principal-only"><div><b>Class Result Report</b><small>Print a complete class performance sheet</small></div>
+<div class="inline-controls"><select id="reportClass"></select><select id="reportSection"></select><button class="btn primary" id="printClassReport">🖨 Print Class Report</button></div></div>
+</div>
+</section>
+<section id="resources" class="page hidden">
+<div class="heading-row"><div><div class="eyebrow">SCHOOL ACADEMIC HUB</div><h1>Resources & Notices</h1><p>Everything students and teachers need outside the results and attendance screens.</p></div><button class="btn primary teacher-only" id="uploadResourceBtn">⇧ Upload resource</button></div>
+<div class="resource-hero"><div><span class="tag">ONE PLACE FOR SCHOOL ACADEMICS</span><h2>Share it once.<br><em>Reach the right class.</em></h2><p>Teachers can publish circulars, homework, timetables, tutorials, question banks, syllabus files, co-curricular notices, date sheets, infirmary information, communication and examination documents.</p></div><div class="resource-hero-mark">▦</div></div>
+<div id="resourceCategories" class="resource-categories"></div>
+<div class="resource-toolbar"><input id="resourceSearch" placeholder="⌕ Search resources"><select id="resourceScope"><option value="">All classes</option></select></div>
+<div id="resourceGrid" class="resource-grid"></div>
+</section>
+
+<section id="settings" class="page hidden principal-only"><div class="heading-row"><div><div class="eyebrow">PRINCIPAL CONTROL CENTRE</div><h1>Administration</h1><p>Create teacher accounts and manage examinations.</p></div></div>
+<div class="admin-grid"><div class="card"><div class="eyebrow">CREATE TEACHER</div><h3>Teacher account</h3><form id="teacherForm"><label>Teacher full name<input name="name" required></label><label>Date of birth<input name="dob" type="date" required></label><label>Teacher user ID<input name="username" required pattern="[a-z0-9._-]+" placeholder="e.g. rahul.sir"></label><label>Initial password (optional)<input name="password" placeholder="Leave blank to generate from name + DOB"></label><button class="btn primary full">Create teacher</button></form><div id="teacherResult"></div></div>
+<div class="card"><div class="eyebrow">EXAMINATIONS</div><h3>Build your assessment list</h3><div class="inline-add"><input id="newExam" placeholder="e.g. Pre-Board 1"><button class="btn primary" id="saveExam">Add</button></div><div id="examList" class="list"></div></div>
+<div class="card wide-admin"><div class="eyebrow">TEACHERS</div><h3>Teacher accounts</h3><div class="table-scroll"><table><thead><tr><th>NAME</th><th>USER ID</th><th>DOB</th><th>CREATED</th></tr></thead><tbody id="teacherTable"></tbody></table></div></div></div></section>
+</main></div>
+
+<div class="mobile-nav"><button data-page="dashboard">⌂<span>Home</span></button><button data-page="students">♧<span>Students</span></button><button data-page="results">▤<span>Results</span></button><button data-page="attendance">◷<span>Attendance</span></button><button data-page="resources">▦<span>Hub</span></button></div>
+<div id="modal" class="modal-wrap hidden"><div class="modal"><button class="close" id="closeModal">×</button><div id="modalContent"></div></div></div>
+<div id="toast"></div><script src="/static/app.js"></script></body></html>

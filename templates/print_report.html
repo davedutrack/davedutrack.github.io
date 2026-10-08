@@ -1,0 +1,49 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>{{ kind|capitalize }} Report - {{ student.name }}</title>
+<style>
+@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;font-size:12px}
+.sheet{max-width:850px;margin:auto}.school{text-align:center;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:12px}
+.school h1{font-size:20px;margin:0 0 3px}.school p{margin:2px 0}.title{text-align:center;font-size:16px;font-weight:700;text-transform:uppercase;margin:10px 0}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:5px 25px;border:1px solid #999;padding:9px;margin-bottom:12px}.meta b{display:inline-block;min-width:115px}
+table{width:100%;border-collapse:collapse;margin:10px 0}th,td{border:1px solid #555;padding:6px 7px;text-align:left}th{text-align:center;background:#eee}.center{text-align:center}.right{text-align:right}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}.box{border:1px solid #777;padding:9px;text-align:center}.box strong{display:block;font-size:16px;margin-top:3px}
+.sign{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:55px;text-align:center}.sig{border-top:1px solid #555;padding-top:5px}
+.note{font-size:10px;color:#555;margin-top:14px}.draft{display:inline-block;border:2px solid #111;padding:3px 10px;font-weight:700;margin-top:5px}
+@media print{.no-print{display:none!important}body{font-size:11px}}
+</style></head><body>
+<div class="sheet">
+<div class="school"><h1>EDUTRACK ACADEMIC</h1><p>School Academic Management System</p><p>Academic Session: ____________</p>
+{% if kind=="marksheet" %}<div class="draft">DRAFT / PROVISIONAL RESULT</div>{% endif %}</div>
+<div class="title">
+{% if kind=="student" %}Final Student Academic Report{% elif kind=="attendance" %}Attendance Report{% elif kind=="academic" %}Academic Performance Report{% else %}Draft / Phase Result Marksheet{% endif %}
+</div>
+<div class="meta"><div><b>Student:</b> {{student.name}}</div><div><b>Admission No.:</b> {{student.admission_no}}</div>
+<div><b>Class & Section:</b> {{student.class_name}} - {{student.section}}</div><div><b>Roll No.:</b> {{student.roll}}</div>
+<div><b>Father/Guardian:</b> {{student.father_name or "—"}}</div><div><b>Date of Birth:</b> {{student.dob or "—"}}</div></div>
+
+{% if kind=="attendance" %}
+<div class="summary"><div class="box">Present<strong>{{present}}</strong></div><div class="box">Absent<strong>{{absent}}</strong></div><div class="box">Attendance<strong>{{"%.2f"|format(att_pct)}}%</strong></div><div class="box">Days Recorded<strong>{{present+absent}}</strong></div></div>
+<h3>Monthly Summary</h3><table><tr><th>Month</th><th>Working Days</th><th>Present</th><th>Absent</th><th>Percentage</th></tr>
+{% for r in monthly %}<tr><td>{{["","January","February","March","April","May","June","July","August","September","October","November","December"][r.month]}} {{r.year}}</td><td class="center">{{r.working_days}}</td><td class="center">{{r.present_days}}</td><td class="center">{{r.working_days-r.present_days}}</td><td class="center">{{"%.2f"|format((r.present_days/r.working_days*100) if r.working_days else 0)}}%</td></tr>{% endfor %}</table>
+{% if daily %}<h3>Daily Attendance Record</h3><table><tr><th>Date</th><th>Status</th></tr>{% for r in daily %}<tr><td>{{r.attendance_date}}</td><td>{{r.status|capitalize}}</td></tr>{% endfor %}</table>{% endif %}
+
+{% elif kind=="academic" %}
+<div class="summary"><div class="box">Total Marks<strong>{{"%.0f"|format(total_score)}}</strong></div><div class="box">Maximum<strong>{{"%.0f"|format(total_max)}}</strong></div><div class="box">Percentage<strong>{{"%.2f"|format(overall_pct)}}%</strong></div><div class="box">Grade<strong>{{grade}}</strong></div></div>
+<table><tr><th>Examination</th><th>Subject</th><th>Marks</th><th>Maximum</th><th>%</th><th>Grade</th></tr>
+{% for r in marks %}<tr><td>{{r.exam_name}}</td><td>{{r.subject}}</td><td class="center">{{r.score}}</td><td class="center">{{r.max_score}}</td><td class="center">{{"%.2f"|format((r.score/r.max_score*100) if r.max_score else 0)}}%</td><td class="center">{{grade}}</td></tr>{% endfor %}</table>
+
+{% elif kind=="marksheet" %}
+<table><tr><th>S.No.</th><th>Subject</th><th>Marks Obtained</th><th>Max Marks</th><th>Grade</th></tr>
+{% set ns=namespace(i=1) %}{% for exam in exams %}{% if exam_map.get(exam.name) %}<tr><th colspan="5">{{exam.name}}</th></tr>{% for r in exam_map[exam.name] %}<tr><td class="center">{{ns.i}}</td><td>{{r.subject}}</td><td class="center">{{r.score}}</td><td class="center">{{r.max_score}}</td><td class="center">{{grade}}</td></tr>{% set ns.i=ns.i+1 %}{% endfor %}{% endif %}{% endfor %}
+<tr><th colspan="2">Overall</th><th>{{"%.0f"|format(total_score)}}</th><th>{{"%.0f"|format(total_max)}}</th><th>{{grade}}</th></tr></table>
+<div class="summary"><div class="box">Percentage<strong>{{"%.2f"|format(overall_pct)}}%</strong></div><div class="box">Attendance<strong>{{"%.2f"|format(att_pct)}}%</strong></div><div class="box">Result<strong>{% if overall_pct>=33 %}PASS{% else %}NEEDS IMPROVEMENT{% endif %}</strong></div><div class="box">Status<strong>PROVISIONAL</strong></div></div>
+
+{% else %}
+<div class="summary"><div class="box">Overall Marks<strong>{{"%.0f"|format(total_score)}} / {{"%.0f"|format(total_max)}}</strong></div><div class="box">Percentage<strong>{{"%.2f"|format(overall_pct)}}%</strong></div><div class="box">Grade<strong>{{grade}}</strong></div><div class="box">Attendance<strong>{{"%.2f"|format(att_pct)}}%</strong></div></div>
+<h3>Examination-wise Performance</h3><table><tr><th>Examination</th><th>Subjects Recorded</th><th>Total Marks</th><th>Maximum</th><th>Percentage</th></tr>
+{% for exam in exams %}{% set rs=exam_map.get(exam.name,[]) %}{% if rs %}{% set sc=rs|sum(attribute='score') %}{% set mx=rs|sum(attribute='max_score') %}<tr><td>{{exam.name}}</td><td class="center">{{rs|length}}</td><td class="center">{{sc}}</td><td class="center">{{mx}}</td><td class="center">{{"%.2f"|format(sc/mx*100 if mx else 0)}}%</td></tr>{% endif %}{% endfor %}</table>
+{% endif %}
+<div class="sign"><div class="sig">Class Teacher</div><div class="sig">Principal</div><div class="sig">Parent / Guardian</div></div>
+<p class="note">Generated {{generated}}. {% if kind=="marksheet" %}This document is a draft/provisional performance statement and is not an official CBSE marksheet.{% endif %}</p>
+<div class="no-print" style="text-align:center;margin-top:20px"><button onclick="window.print()">🖨 Print / Save as PDF</button></div>
+</div></body></html>
